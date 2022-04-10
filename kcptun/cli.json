@@ -1,0 +1,19 @@
+{
+  "localaddr": ":20001",
+  "remoteaddr": "MY_SERVER_IP:29900",
+  "key": "very fast",
+  "crypt": "aes-192",
+  "mode": "fast3",
+  "mtu": 1350,
+  "sndwnd": 1024,
+  "rcvwnd": 1024,
+  "datashard": 10,
+  "parityshard": 3,
+  "dscp": 0,
+  "sockbuf": 16777217,
+  "nocomp": false,
+  "quiet": false,
+  "tcp": false,
+  "pprof": false
+}
+

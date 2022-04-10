@@ -1,0 +1,34 @@
+function pid_exists() {
+  local exists=`ps aux | awk '{print $2}'| grep -w $1`
+  if [[ ! $exists ]]
+  then
+    return 0;
+  else
+    return 1;
+  fi
+}
+
+function pid_status() {
+  if [[ -f $1 ]];then
+    pid_exists `cat $1`
+    if [[ $? == 1 ]];then
+      echo -e "\t $2: \033[32m运行中\033[0m"
+    else
+      echo -e "\t $2: \033[31m已停止\033[0m"
+    fi
+  else
+    echo -e "\t $2: \033[31m已停止\033[0m"
+  fi
+}
+
+
+function stop() {
+  local pid=`cat $1`
+  kill -9 $pid
+  pid_exists $pid
+  if [[ $pid == 1 ]]
+  then
+    echo "停止任务失败"
+  fi
+}
+

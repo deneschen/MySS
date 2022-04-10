@@ -1,0 +1,12 @@
+{
+	"servers": [
+		{
+			"address": "MY_SERVER_IP",
+			"port": MY_SERVER_PORT,
+			"password": "MY_SERVER_PASSWD",
+			"method": "chacha20-ietf-poly1305"
+		}
+	],
+	"local_port": 1080,
+	"local_address": "0.0.0.0"
+}
