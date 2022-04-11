@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 echo "KCP/SpeederV2/Udp2raw一键启动脚本"
 cd `dirname $0`
 
@@ -15,11 +14,16 @@ pid_udp2raw=./pid/udp2raw_$0.pid
 
 source ./common
 
+loc_speeder_port=6001
+pub_udp2raw_port=6002
+loc_udp2raw_port=7004
+
 function start_ss() {
-	if [ $is_server == 1 ];then
-		./ss/ssserver -c ./ss/ss.json >/dev/null 2>&1 &
+	local flog=/tmp/sslog
+	if [[ $is_server == 1 ]];then
+		./ss/ssserver -c ./ss/ss.json >$flog 2>&1 &
 	else
-		./ss/sslocal -c ./ss/cl.json >/dev/null 2>&1 &
+		./ss/sslocal -c ./ss/cl.json >$flog 2>&1 &
 	fi
 	pid=$!
 	echo $pid >$pid_ss
@@ -33,10 +37,11 @@ function start_ss() {
 }
 
 function start_kcp() {
-	if [ $is_server == 1 ];then
-		./kcptun/server_linux_amd64 -c ./kcptun/config.json >/dev/null 2>&1 &
+	local flog=/tmp/kcplog
+	if [[ $is_server == 1 ]];then
+		./kcptun/server_linux_amd64 -c ./kcptun/ss.json >$flog 2>&1 &
 	else
-		./kcptun/client_linux_amd64 -c ./kcptun/cli.json >/dev/null 2>&1 &
+		./kcptun/client_linux_amd64 -c ./kcptun/cli.json >$flog 2>&1 &
 	fi
 	pid=$!
 	echo $pid >$pid_kcptun
@@ -50,10 +55,11 @@ function start_kcp() {
 }
 
 function start_speeder() {
-	if [ $is_server == 1 ];then
-		./UDPspeeder/speederv2_amd64 -s -l0.0.0.0:6001 -r0.0.0.0:MY_SERVER_PORT -k "passwd" -f20:40 --timeout 1 >/dev/null 2>&1 &
+	local flog=/tmp/speederlog
+	if [[ $is_server == 1 ]];then
+		./UDPspeeder/speederv2_amd64 -s -l0.0.0.0:$loc_speeder_port -r0.0.0.0:MY_SERVER_PORT -k "passwd" -f20:40 --timeout 1 >$flog 2>&1 &
 	else
-		./UDPspeeder/speederv2_amd64 -c -l0.0.0.0:20001 -r0.0.0.0:7004 -k "passwd" -f20:40 --mode 0 >/dev/null 2>&1 &
+		./UDPspeeder/speederv2_amd64 -c -l0.0.0.0:20001 -r0.0.0.0:$loc_udp2raw_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
 	fi
 	pid=$!
 	echo $pid >$pid_speederv2
@@ -67,10 +73,11 @@ function start_speeder() {
 }
 
 function start_udp2raw() {
-	if [ $is_server == 1 ];then
-		./udp2raw/udp2raw_amd64_hw_aes -s -lMY_SERVER_IP:6002 -r0.0.0.0:6001 -a -k "passwd" --raw-mode faketcp >/dev/null 2>&1 &
+	local flog=/tmp/udp2rawlog
+	if [[ $is_server == 1 ]];then
+		./udp2raw/udp2raw_amd64_hw_aes -s -lMY_SERVER_IP:$pub_udp2raw_port -r0.0.0.0:$loc_speeder_port -a -k "passwd" --raw-mode faketcp >$flog 2>&1 &
 	else
-		./udp2raw/udp2raw_amd64_hw_aes -c -l0.0.0.0:7004 -rMY_SERVER_IP:6002 -k "passwd" --raw-mode faketcp >/dev/null 2>&1 &
+		sudo ./udp2raw/udp2raw_amd64_hw_aes -c -l0.0.0.0:$loc_udp2raw_port -rMY_SERVER_IP:$pub_udp2raw_port -a -k "passwd" --raw-mode faketcp >$flog 2>&1 &
 	fi
 	pid=$!
 	echo $pid >$pid_udp2raw
