@@ -75,9 +75,9 @@ function start_speeder() {
 function start_udp2raw() {
 	local flog=/tmp/udp2rawlog
 	if [[ $is_server == 1 ]];then
-		./udp2raw/udp2raw_amd64_hw_aes -s -lMY_SERVER_IP:$pub_udp2raw_port -r0.0.0.0:$loc_speeder_port -a -k "passwd" --raw-mode faketcp >$flog 2>&1 &
+		./udp2raw/udp2raw_amd64 -s -lMY_SERVER_IP:$pub_udp2raw_port -r0.0.0.0:$loc_speeder_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
 	else
-		sudo ./udp2raw/udp2raw_amd64_hw_aes -c -l0.0.0.0:$loc_udp2raw_port -rMY_SERVER_IP:$pub_udp2raw_port -a -k "passwd" --raw-mode faketcp >$flog 2>&1 &
+		sudo ./udp2raw/udp2raw_amd64 -c -l0.0.0.0:$loc_udp2raw_port -rMY_SERVER_IP:$pub_udp2raw_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
 	fi
 	pid=$!
 	echo $pid >$pid_udp2raw
