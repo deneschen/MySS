@@ -59,8 +59,7 @@ function start_speeder() {
 	if [[ $is_server == 1 ]];then
 		./UDPspeeder/speederv2_amd64 -s -l0.0.0.0:$loc_speeder_port -r0.0.0.0:MY_SERVER_PORT -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
 	else
-		#./UDPspeeder/speederv2_amd64 -c -l0.0.0.0:20001 -r0.0.0.0:$loc_udp2raw_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
-		./UDPspeeder/speederv2_amd64 -c -l0.0.0.0:20001 -rMY_SERVER_IP:$loc_speeder_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
+		./UDPspeeder/speederv2_amd64 -c -l0.0.0.0:20001 -r0.0.0.0:$loc_udp2raw_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
 	fi
 	pid=$!
 	echo $pid >$pid_speederv2
@@ -95,14 +94,14 @@ function start() {
 	start_ss
 	start_kcp
 	start_speeder
-	#start_udp2raw
+	start_udp2raw
 }
 
 function stop_proces() {
 	stop $pid_ss
 	stop $pid_kcptun
 	stop $pid_speederv2
-	#stop $pid_udp2raw
+	stop $pid_udp2raw
 }
 
 if [[ "start" == $param ]];then
@@ -123,7 +122,7 @@ else
 	pid_status $pid_ss "SS"
 	pid_status $pid_kcptun "KCP"
 	pid_status $pid_speederv2 "speederv2"
-	#pid_status $pid_udp2raw "udp2raw"
+	pid_status $pid_udp2raw "udp2raw"
 
 	echo "使用方式：  is_server=1 or 0"
 	echo -e "\t运行服务：bash $0 start "

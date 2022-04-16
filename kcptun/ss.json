@@ -11,7 +11,7 @@
   "parityshard": 3,
   "dscp": 0,
   "sockbuf": 16777217,
-  "nocomp": false,
+  "nocomp": true,
   "quiet": false,
   "tcp": false,
   "pprof": false
