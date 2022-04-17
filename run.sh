@@ -86,8 +86,7 @@ function start_udp2raw() {
 }
 
 function mod_json() {
-	sed -i
-	's/MY_SERVER_IP/'$server_ip'/;s/MY_SERVER_PORT/'$loc_ss_port'/;s/MY_SERVER_PASSWD/'$ss_passwd'/;s/PUB_KCPTUN_PORT/'$pub_kcp_port'/;s/LOC_KCPTUN_PORT/'$loc_kcp_port'/' kcptun/cli.json kcptun/ss.json ss/cl.json ss/ss.json test.sh Win/cl.json Win/cli.json Win/start.cmd
+	sed -i 's/MY_SERVER_IP/'$server_ip'/;s/MY_SERVER_PORT/'$loc_ss_port'/;s/MY_SERVER_PASSWD/'$ss_passwd'/;s/PUB_KCPTUN_PORT/'$pub_kcp_port'/;s/LOC_KCPTUN_PORT/'$loc_kcp_port'/' kcptun/cli.json kcptun/ss.json ss/cl.json ss/ss.json test.sh Win/cl.json Win/cli.json Win/start.cmd
 }
 
 function start() {
