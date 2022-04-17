@@ -92,15 +92,15 @@ function mod_json() {
 function start() {
 	start_ss
 	start_kcp
-	start_speeder
-	start_udp2raw
+	#start_speeder
+	#start_udp2raw
 }
 
 function stop_proces() {
 	stop $pid_ss
 	stop $pid_kcptun
-	stop $pid_speederv2
-	stop $pid_udp2raw
+	#stop $pid_speederv2
+	#stop $pid_udp2raw
 }
 
 function usage() {
@@ -174,5 +174,5 @@ fi
 echo "服务状态："
 pid_status $pid_ss "SS"
 pid_status $pid_kcptun "KCP"
-pid_status $pid_speederv2 "speederv2"
-pid_status $pid_udp2raw "udp2raw"
+#pid_status $pid_speederv2 "speederv2"
+#pid_status $pid_udp2raw "udp2raw"
