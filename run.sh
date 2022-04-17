@@ -144,8 +144,7 @@ while getopts "c:i:p:w:k:l:s" o; do
 done
 shift $((OPTIND-1))
 
-if [[ -z "$cmd" || -z "$server_ip" || -z "$loc_ss_port" || -z "$ss_passwd" || -z
-	"$pub_kcp_port" || -z "$loc_kcp_port" ]];
+if [[ -z "$cmd" || -z "$server_ip" || -z "$loc_ss_port" || -z "$ss_passwd" || -z "$pub_kcp_port" || -z "$loc_kcp_port" ]];
 then
 	usage;
 fi
