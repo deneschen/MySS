@@ -7,6 +7,8 @@ loc_speeder_port=6001
 pub_udp2raw_port=6002
 loc_udp2raw_port=7004
 
+lh=127.0.0.1
+
 strore_pid=/tmp/pid
 pid_ss=$strore_pid/pid_ss
 pid_kcptun=$strore_pid/pid_kcptun
@@ -52,9 +54,9 @@ function start_kcp() {
 function start_speeder() {
 	local flog=/tmp/speederlog
 	if [[ $is_server == 1 ]];then
-		./UDPspeeder/speederv2_amd64 -s -l:$loc_speeder_port -r:$loc_ss_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
+		./UDPspeeder/speederv2_amd64 -s -l$lh:$loc_speeder_port -r$lh:$loc_ss_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
 	else
-		./UDPspeeder/speederv2_amd64 -c -l:$loc_kcp_port -r:$loc_udp2raw_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
+		./UDPspeeder/speederv2_amd64 -c -l$lh:$loc_kcp_port -r$lh:$loc_udp2raw_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
 	fi
 	pid=$!
 	pid_exists $pid
@@ -69,9 +71,9 @@ function start_speeder() {
 function start_udp2raw() {
 	local flog=/tmp/udp2rawlog
 	if [[ $is_server == 1 ]];then
-		./udp2raw/udp2raw_amd64 -s -l:$pub_udp2raw_port -r:$loc_speeder_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
+		./udp2raw/udp2raw_amd64 -s -l$lh:$pub_udp2raw_port -r$lh:$loc_speeder_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
 	else
-		sudo ./udp2raw/udp2raw_amd64 -c -l:$loc_udp2raw_port -r$server_ip:$pub_udp2raw_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
+		sudo ./udp2raw/udp2raw_amd64 -c -l$lh:$loc_udp2raw_port -r$server_ip:$pub_udp2raw_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
 	fi
 	pid=$!
 	pid_exists $pid
