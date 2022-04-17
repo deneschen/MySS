@@ -1,6 +1,6 @@
 {
-  "localaddr": ":20001",
-  "remoteaddr": "MY_SERVER_IP:29900",
+  "localaddr": ":LOC_KCPTUN_PORT",
+  "remoteaddr": "MY_SERVER_IP:PUB_KCPTUN_PORT",
   "key": "very fast",
   "crypt": "aes-192",
   "mode": "fast3",

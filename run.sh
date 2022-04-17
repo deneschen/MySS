@@ -1,22 +1,19 @@
 #!/bin/bash
-echo "KCP/SpeederV2/Udp2raw一键启动脚本"
 cd `dirname $0`
-
-param=$1
-if [ ! -d "./pid" ];then
-	mkdir ./pid
-fi
-
-pid_ss=./pid/ss_$0.pid
-pid_kcptun=./pid/kcptun_$0.pid
-pid_speederv2=./pid/speederv2_$0.pid
-pid_udp2raw=./pid/udp2raw_$0.pid
 
 source ./common
 
 loc_speeder_port=6001
 pub_udp2raw_port=6002
 loc_udp2raw_port=7004
+
+strore_pid=/tmp/pid
+pid_ss=$strore_pid/pid_ss
+pid_kcptun=$strore_pid/pid_kcptun
+pid_speederv2=$strore_pid/pid_speederv2
+pid_udp2raw=$strore_pid/pid_udp2raw
+
+[ -e $strore_pid ] || mkdir -p $strore_pid
 
 function start_ss() {
 	local flog=/tmp/sslog
@@ -26,10 +23,9 @@ function start_ss() {
 		./ss/sslocal -c ./ss/cl.json >$flog 2>&1 &
 	fi
 	pid=$!
-	echo $pid >$pid_ss
-	sleep 2
 	pid_exists $pid
 	if [ $? == 1 ];then
+		echo $pid >$pid_ss
 		echo -e "SS \033[32m启动成功\033[0m"
 	else
 		echo -e "SS \033[33m启动失败\033[0m"
@@ -44,10 +40,9 @@ function start_kcp() {
 		./kcptun/client_linux_amd64 -c ./kcptun/cli.json >$flog 2>&1 &
 	fi
 	pid=$!
-	echo $pid >$pid_kcptun
-	sleep 2
 	pid_exists $pid
 	if [ $? == 1 ];then
+		echo $pid >$pid_kcptun
 		echo -e "KCP \033[32m启动成功\033[0m"
 	else
 		echo -e "KCP \033[33m启动失败\033[0m"
@@ -57,15 +52,14 @@ function start_kcp() {
 function start_speeder() {
 	local flog=/tmp/speederlog
 	if [[ $is_server == 1 ]];then
-		./UDPspeeder/speederv2_amd64 -s -l0.0.0.0:$loc_speeder_port -r0.0.0.0:MY_SERVER_PORT -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
+		./UDPspeeder/speederv2_amd64 -s -l:$loc_speeder_port -r:$loc_ss_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
 	else
-		./UDPspeeder/speederv2_amd64 -c -l0.0.0.0:20001 -r0.0.0.0:$loc_udp2raw_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
+		./UDPspeeder/speederv2_amd64 -c -l:$loc_kcp_port -r:$loc_udp2raw_port -k "passwd" -f20:40 --mode 0 >$flog 2>&1 &
 	fi
 	pid=$!
-	echo $pid >$pid_speederv2
-	sleep 2
 	pid_exists $pid
 	if [ $? == 1 ];then
+		echo $pid >$pid_speederv2
 		echo -e "SpeedV2 \033[32m启动成功\033[0m"
 	else
 		echo -e "SpeedV2 \033[33m启动失败\033[0m"
@@ -75,19 +69,22 @@ function start_speeder() {
 function start_udp2raw() {
 	local flog=/tmp/udp2rawlog
 	if [[ $is_server == 1 ]];then
-		./udp2raw/udp2raw_amd64 -s -lMY_SERVER_IP:$pub_udp2raw_port -r0.0.0.0:$loc_speeder_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
+		./udp2raw/udp2raw_amd64 -s -l:$pub_udp2raw_port -r:$loc_speeder_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
 	else
-		sudo ./udp2raw/udp2raw_amd64 -c -l0.0.0.0:$loc_udp2raw_port -rMY_SERVER_IP:$pub_udp2raw_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
+		sudo ./udp2raw/udp2raw_amd64 -c -l:$loc_udp2raw_port -r$server_ip:$pub_udp2raw_port -a -k "passwd" --raw-mode faketcp --cipher-mode xor --auth-mode none >$flog 2>&1 &
 	fi
 	pid=$!
-	echo $pid >$pid_udp2raw
-	sleep 2
 	pid_exists $pid
 	if [ $? == 1 ];then
+		echo $pid >$pid_udp2raw
 		echo -e "UDP2RAW \033[32m启动成功\033[0m"
 	else
 		echo -e "UDP2RAW \033[33m启动失败\033[0m"
 	fi
+}
+
+function mod_json() {
+	sed -i 's/MY_SERVER_IP/'$server_ip'/;s/MY_SERVER_PORT/'$loc_ss_port'/;s/MY_SERVER_PASSWD/'$ss_passwd'/;s/PUB_KCPTUN_PORT/'$pub_kcp_port'/;s/LOC_KCPTUN_PORT/'$loc_kcp_port'/' kcptun/cli.json kcptun/ss.json ss/cl.json ss/ss.json test.sh
 }
 
 function start() {
@@ -104,28 +101,77 @@ function stop_proces() {
 	stop $pid_udp2raw
 }
 
-if [[ "start" == $param ]];then
+function usage() {
+	echo "Usage:"
+	echo "$0"
+	echo "-c <start|stop|restart>"
+	echo "-i <server_ip>"
+	echo "-p <server_port>"
+	echo "-w <passwd>"
+	echo "-k <pub_kcp_port>"
+	echo "-l <loc_kcp_port>"
+	echo "[-s](this is optional)"
+	exit -1;
+}
+
+while getopts "c:i:p:w:k:l:s" o; do
+	case "${o}" in
+		c)
+			export cmd=${OPTARG}
+			;;
+		i)
+			export server_ip=${OPTARG}
+			;;
+		p)
+			export loc_ss_port=${OPTARG}
+			;;
+		w)
+			export ss_passwd=${OPTARG}
+			;;
+		k)
+			export pub_kcp_port=${OPTARG}
+			;;
+		l)
+			export loc_kcp_port=${OPTARG}
+			;;
+		s)
+			export is_server=1
+			;;
+		*)
+			usage
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+if [[ -z "$cmd" || -z "$server_ip" || -z "$loc_ss_port" || -z "$ss_passwd" || -z
+	"$pub_kcp_port" || -z "$loc_kcp_port" ]];
+then
+	usage;
+fi
+
+mod_json
+
+echo cmd=$cmd
+echo server_ip=$server_ip
+echo loc_ss_port=$loc_ss_port
+echo ss_passwd=$ss_passwd
+echo pub_kcp_port=$pub_kcp_port
+echo loc_kcp_port=$loc_kcp_port
+echo is_server=$is_server
+
+if [[ "start" == $cmd ]];then
 	echo "即将：启动脚本";
 	start
-elif  [[ "stop" == $param ]];then
+elif  [[ "stop" == $cmd ]];then
 	echo "即将：停止脚本";
 	stop_proces;
-elif  [[ "restart" == $param ]];then
+elif  [[ "restart" == $cmd ]];then
 	stop_proces
 	start
-else
-	echo "当前配置(如不正确，请编辑脚本进行修改)："
-	echo -e "\t 服务端IP：MY_SERVER_IP"
-	echo -e "\t 本地加速端口: MY_SERVER_PORT"
-	echo "服务状态："
-
-	pid_status $pid_ss "SS"
-	pid_status $pid_kcptun "KCP"
-	pid_status $pid_speederv2 "speederv2"
-	pid_status $pid_udp2raw "udp2raw"
-
-	echo "使用方式：  is_server=1 or 0"
-	echo -e "\t运行服务：bash $0 start "
-	echo -e "\t停止服务：bash $0 stop "
-	echo -e "\t重启服务：bash $0 restart "
 fi
+echo "服务状态："
+pid_status $pid_ss "SS"
+pid_status $pid_kcptun "KCP"
+pid_status $pid_speederv2 "speederv2"
+pid_status $pid_udp2raw "udp2raw"

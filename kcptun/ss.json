@@ -1,5 +1,5 @@
 {
-  "listen": ":29900",
+  "listen": ":PUB_KCPTUN_PORT",
   "target": "MY_SERVER_IP:MY_SERVER_PORT",
   "key": "very fast",
   "crypt": "aes-192",
