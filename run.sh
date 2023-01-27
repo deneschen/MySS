@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 SHDIR=$(realpath $0)
 SHDIR=$(dirname $SHDIR)
