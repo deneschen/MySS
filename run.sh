@@ -16,10 +16,10 @@ pid_kcptun=$STOREPID/pid_kcptun
 # openssl rand -base64 <长度>
 
 function start_shadowsocks() {
-	$SHDIR/shadowsocks/ssserver -c $SHDIR/shadowsocks/config.json &
+	nohup $SHDIR/shadowsocks/ssserver -c $SHDIR/shadowsocks/config.json &
 	pid=$!
-	pid_exists $pid
-	if [ $? == 1 ]; then
+	sleep 1
+	if [ $pid == `pgrep ssserver` ]; then
 		echo $pid >$pid_ss
 		echo -e "SS \033[32m启动成功\033[0m"
 	else
@@ -29,9 +29,10 @@ function start_shadowsocks() {
 }
 
 function start_kcptun() {
-	$SHDIR/kcptun/server_linux_amd64 -c $SHDIR/kcptun/config.json &
+	nohup $SHDIR/kcptun/server_linux_amd64 -c $SHDIR/kcptun/config.json &
 	pid=$!
-	if [ $? == 1 ]; then
+	sleep 1
+	if [ $pid == `pgrep server_linux_` ]; then
 		echo $pid >$pid_kcptun
 		echo -e "SS \033[32m启动成功\033[0m"
 	else
@@ -46,12 +47,12 @@ function mod_json()
 	sed -i 's/SS_SERVER_IP/'$ss_server_ip'/'     $SHDIR/kcptun/config.json
 	sed -i 's/SS_SERVER_PORT/'$ss_server_port'/' $SHDIR/kcptun/config.json
 	sed -i 's/SS_PASSWD/'$ss_passwd'/'           $SHDIR/kcptun/config.json
-	set -i 's/KCPTUN_PORT/'$kcptun_port'/'       $SHDIR/kcptun/config.json
+	sed -i 's/KCPTUN_PORT/'$kcptun_port'/'       $SHDIR/kcptun/config.json
 	# echo shadowsocks config
 	sed -i 's/SS_SERVER_IP/'$ss_server_ip'/'     $SHDIR/shadowsocks/config.json
 	sed -i 's/SS_SERVER_PORT/'$ss_server_port'/' $SHDIR/shadowsocks/config.json
 	sed -i 's/SS_PASSWD/'$ss_passwd'/'           $SHDIR/shadowsocks/config.json
-	set -i 's/KCPTUN_PORT/'$kcptun_port'/'       $SHDIR/shadowsocks/config.json
+	sed -i 's/KCPTUN_PORT/'$kcptun_port'/'       $SHDIR/shadowsocks/config.json
 }
 
 function start_all()
@@ -103,6 +104,11 @@ while getopts "c:i:p:w:k:l:s" o; do
 done
 shift $((OPTIND-1))
 
+if [[ "status" == $cmd ]];then
+	netstat -antpul
+	exit 0
+fi
+
 if [[ -z "$cmd" || -z "$ss_server_ip" || -z "$ss_server_port" || -z "$ss_passwd" || -z "$kcptun_port" ]];
 then
 	usage;
@@ -127,8 +133,5 @@ elif  [[ "restart" == $cmd ]];then
 	start_all;
 fi
 echo "服务状态："
-pid_status $pid_ss "SS"
-pid_status $pid_kcptun "KCP"
-
-sleep 3
+sleep 1
 netstat -antup
