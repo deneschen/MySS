@@ -1,0 +1,23 @@
+{
+	"listen": ":KCPTUN_PORT",
+	"target": "127.0.0.1:SS_SERVER_PORT",
+	"key": "very fast",
+	"crypt": "aes-128",
+	"mode": "fast3",
+	"mtu": 1400,
+	"sndwnd": 2048,
+	"rcvwnd": 2048,
+	"datashard": 10,
+	"parityshard": 3,
+	"dscp": 46,
+	"nocomp": false,
+	"acknodelay": false,
+	"sockbuf": 16777217,
+	"smuxbuf": 4194304,
+	"streambuf": 2097152,
+	"smuxver": 1,
+	"keepalive": 10,
+	"pprof": false,
+	"quiet": true,
+	"tcp": false
+}

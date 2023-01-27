@@ -1,0 +1,11 @@
+{
+        "servers": [
+                {
+                        "address": "SS_SERVER_IP",
+                        "port": SS_SERVER_PORT,
+                        "password": "SS_PASSWD",
+                        "method": "2022-blake3-chacha20-poly1305"
+                }
+        ]
+}
+
